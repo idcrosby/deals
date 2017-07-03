@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	GetDeal(id int) (Deal, error)
+	GetRandomDeal() (Deal, error)
 }
 
 type Deal struct {
@@ -31,6 +32,17 @@ func (s *dealService) GetDeal(id int) (Deal, error) {
 	c := s.db.DB("test").C("deals")
 	r := Deal{}
 	err := c.Find(bson.M{"id": id}).One(&r)
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+func (s *dealService) GetRandomDeal() (Deal, error) {
+	c := s.db.DB("test").C("deals")
+	pipe := c.Pipe([]bson.M{{"$sample": bson.M{"size": 1}}})
+	r := Deal{}
+	err := pipe.One(&r)
 	if err != nil {
 		return r, err
 	}

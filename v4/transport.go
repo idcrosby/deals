@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 	"strconv"
 	"github.com/go-kit/kit/log"
@@ -16,7 +16,6 @@ func MakeHTTPHandler(ctx context.Context, e Endpoints, logger log.Logger) http.H
 		httptransport.ServerErrorLogger(logger),
 	}
 	r.Methods("GET").Path("/deals").Handler(httptransport.NewServer(
-		ctx,
 		e.GetDealEndpoint,
 		DecodeRequest,
 		EncodeResponse,
@@ -27,9 +26,15 @@ func MakeHTTPHandler(ctx context.Context, e Endpoints, logger log.Logger) http.H
 
 func DecodeRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	idStr := r.FormValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		return nil, err
+	var id int
+	var err error
+	if len(idStr) > 0 {
+		id, err = strconv.Atoi(idStr)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		id = -1
 	}
 	return getDealRequest{
 		ID: id,

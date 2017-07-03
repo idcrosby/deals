@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/go-kit/kit/endpoint"
-	"golang.org/x/net/context"
+	"context"
 )
 
 type Endpoints struct {
@@ -18,7 +18,13 @@ func MakeEndpoints(s Service) Endpoints {
 func MakeGetDealEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(getDealRequest)
-		p, e := s.GetDeal(req.ID)
+		var p Deal
+		var e error
+		if (req.ID == -1) {
+			p, e = s.GetRandomDeal()
+		} else {
+			p, e = s.GetDeal(req.ID)
+		}
 		return getDealResponse{Id: p.Id, Name: p.Name}, e
 	}
 }

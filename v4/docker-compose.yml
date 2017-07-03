@@ -7,5 +7,5 @@ services:
       - 8080:8080
     hostname: deals
   deals-db:
-    image: mongo:3.0
+    image: mongo:3.4
     hostname: deals-db

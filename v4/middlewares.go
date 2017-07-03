@@ -35,6 +35,18 @@ func (mw loggingMiddleware) GetDeal(id int) (deal Deal, err error) {
 	return mw.next.GetDeal(id)
 }
 
+func (mw loggingMiddleware) GetRandomDeal() (deal Deal, err error) {
+	defer func(begin time.Time) {
+		mw.logger.Log(
+			"method", "GetRandomDeal",
+			"deal", deal.Id,
+			"err", err,
+			"took", time.Since(begin),
+		)
+	}(time.Now())
+	return mw.next.GetRandomDeal()
+}
+
 type instrumentingService struct {
 	requestCount   metrics.Counter
 	requestLatency metrics.Histogram
@@ -56,4 +68,13 @@ func (s *instrumentingService) GetDeal(id int) (deal Deal, err error) {
 	}(time.Now())
 
 	return s.Service.GetDeal(id)
+}
+
+func (s *instrumentingService) GetRandomDeal() (deal Deal, err error) {
+	defer func(begin time.Time) {
+		s.requestCount.With("method", "GetRandomDeal").Add(1)
+		s.requestLatency.With("method", "GetRandomDeal").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+
+	return s.Service.GetRandomDeal()
 }
